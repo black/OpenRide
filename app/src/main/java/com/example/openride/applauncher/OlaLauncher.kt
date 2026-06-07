@@ -6,23 +6,28 @@ import android.net.Uri
 import com.example.openride.RideLocation
 
 object OlaLauncher {
-    fun launch(
-        context: Context,
-        location: RideLocation
-    ) {
-
+    fun launch(context: Context, location: RideLocation) {
         val uri = Uri.parse(
-            "uber://?action=setPickup" +
-                    "&pickup=my_location" +
-                    "&dropoff[latitude]=${location.latitude}" +
-                    "&dropoff[longitude]=${location.longitude}"
+            "olacabs://app/launch?" +
+                    "lat=${location.latitude}&lng=${location.longitude}" +   // Ola uses drop as pickup fallback
+                    "&drop_lat=${location.latitude}&drop_lng=${location.longitude}" +
+                    "&category=auto"
         )
 
-        val intent = Intent(
-            Intent.ACTION_VIEW,
-            uri
-        )
+        val intent = Intent(Intent.ACTION_VIEW, uri)
 
-        context.startActivity(intent)
+        if (intent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(intent)
+        } else {
+            // Universal fallback — opens app or Ola website
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW,
+                    Uri.parse(
+                        "https://olawebcdn.com/assets/ola-universal-link.html?" +
+                                "drop_lat=${location.latitude}&drop_lng=${location.longitude}" +
+                                "&category=auto&landing_page=bk"
+                    ))
+            )
+        }
     }
 }

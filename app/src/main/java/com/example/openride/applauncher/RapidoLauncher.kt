@@ -6,23 +6,23 @@ import android.net.Uri
 import com.example.openride.RideLocation
 
 object RapidoLauncher {
-    fun launch(
-        context: Context,
-        location: RideLocation
-    ) {
-
-        val uri = Uri.parse(
-            "uber://?action=setPickup" +
-                    "&pickup=my_location" +
-                    "&dropoff[latitude]=${location.latitude}" +
-                    "&dropoff[longitude]=${location.longitude}"
+    fun launch(context: Context, location: RideLocation) {
+        val geoUri = Uri.parse(
+            "geo:${location.latitude},${location.longitude}" +
+                    "?q=${location.latitude},${location.longitude}(${Uri.encode("Destination")})"
         )
 
-        val intent = Intent(
-            Intent.ACTION_VIEW,
-            uri
-        )
+        val intent = Intent(Intent.ACTION_VIEW, geoUri).apply {
+            setPackage("com.rapido.passenger")
+        }
 
-        context.startActivity(intent)
+        if (intent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(intent)
+        } else {
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW,
+                    Uri.parse("https://play.google.com/store/apps/details?id=com.rapido.passenger"))
+            )
+        }
     }
 }

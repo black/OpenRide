@@ -43,12 +43,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             OpenRideTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    HomeScreen(
-                        sharedText,
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                HomeScreen(
+                    sharedText,
+                    modifier = Modifier.padding(32.dp)
+                )
             }
         }
 
