@@ -1,3 +1,6 @@
+![Logo](logo.png)
+
+
 # OpenRide 
 
 OpenRide is an Android application that bridges Google Maps and ride-sharing apps.
