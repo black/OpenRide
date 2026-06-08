@@ -72,11 +72,9 @@ app/
 │   └── RideLauncher.kt
 │
 ├── ui/
-│   ├── RideLocation.kt
-│   ├── LocationParser.kt
-│   └── UrlResolver.kt
-│
-└── res/
+    ├── RideLocation.kt
+    ├── LocationParser.kt
+    └── UrlResolver.kt
 ```
 
 
