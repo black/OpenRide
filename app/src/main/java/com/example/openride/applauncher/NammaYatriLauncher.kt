@@ -7,21 +7,19 @@ import com.example.openride.RideLocation
 
 object NammaYatriLauncher {
     fun launch(context: Context, location: RideLocation) {
-        val geoUri = Uri.parse(
-            "geo:${location.latitude},${location.longitude}" +
-                    "?q=${location.latitude},${location.longitude}(${Uri.encode( "Destination")})"
-        )
+        // Namma Yatri doesn't handle geo: intents
+        // Launch the app directly via its launcher activity
+        val intent = context.packageManager
+            .getLaunchIntentForPackage("in.juspay.nammayatri")
 
-        val intent = Intent(Intent.ACTION_VIEW, geoUri).apply {
-            setPackage("in.juspay.nammayatri")
-        }
-
-        if (intent.resolveActivity(context.packageManager) != null) {
+        if (intent != null) {
             context.startActivity(intent)
         } else {
             context.startActivity(
-                Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://play.google.com/store/apps/details?id=in.juspay.nammayatri"))
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://play.google.com/store/apps/details?id=in.juspay.nammayatri")
+                )
             )
         }
     }
