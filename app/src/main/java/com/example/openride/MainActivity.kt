@@ -16,16 +16,22 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.openride.ui.theme.OpenRideTheme
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.openride.ui.HomeScreen
 import com.example.openride.ui.OpenRideTopBar
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var locationHelper: LocationHelper
+    private var location by mutableStateOf<RideLocation?>(null)
     // Register the permission launcher
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -59,6 +65,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         HomeScreen(
                             sharedText = sharedText,
+                            originLocation=location,
                             modifier = Modifier
                                 .padding(16.dp)
                         )
@@ -73,6 +80,7 @@ class MainActivity : ComponentActivity() {
     private fun fetchLocation() {
         locationHelper.getCurrentLocation(
             onSuccess = { lat, lng ->
+                location = RideLocation(lat, lng)
                 Log.d("Location", "Lat: $lat, Lng: $lng")
                 Toast.makeText(this, "Lat: $lat\nLng: $lng", Toast.LENGTH_LONG).show()
             },
@@ -83,15 +91,15 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    OpenRideTheme {
-        Scaffold { innerPadding ->
-            HomeScreen(
-                sharedText = "https://maps.app.goo.gl/test",
-                modifier = Modifier.padding(innerPadding)
-            )
-        }
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun HomeScreenPreview() {
+//    OpenRideTheme {
+//        Scaffold { innerPadding ->
+//            HomeScreen(
+//                sharedText = "https://maps.app.goo.gl/test",
+//                modifier = Modifier.padding(innerPadding)
+//            )
+//        }
+//    }
+//}

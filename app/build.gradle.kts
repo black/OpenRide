@@ -56,10 +56,11 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
     // location service
     implementation(libs.play.services.location)
 
     // Map
     implementation(libs.android.sdk)
-    implementation(libs.android.plugin.annotation.v9)
 }
