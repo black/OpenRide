@@ -25,12 +25,11 @@ import org.maplibre.android.style.sources.GeoJsonSource
 import org.maplibre.geojson.Feature
 import org.maplibre.geojson.LineString
 import org.maplibre.geojson.Point
-
 @Composable
 fun MapLibreMap(
     modifier: Modifier = Modifier,
-    origin: RideLocation,
-    destination: RideLocation
+    origin: RideLocation?,
+    destination: RideLocation?
 ) {
     val scope = rememberCoroutineScope()
 
@@ -43,75 +42,155 @@ fun MapLibreMap(
                 getMapAsync { map ->
                     map.setStyle("https://tiles.openfreemap.org/styles/liberty") { style ->
 
-                        // Fit camera to show both points
-                        val bounds = LatLngBounds.Builder()
-                            .include(LatLng(origin.latitude, origin.longitude))
-                            .include(LatLng(destination.latitude, destination.longitude))
-                            .build()
-                        map.animateCamera(
-                            CameraUpdateFactory.newLatLngBounds(bounds, 100)
-                        )
+                        // Camera position
+                        when {
+                            origin != null && destination != null -> {
+                                val bounds = LatLngBounds.Builder()
+                                    .include(LatLng(origin.latitude, origin.longitude))
+                                    .include(LatLng(destination.latitude, destination.longitude))
+                                    .build()
 
-                        // Add marker icons
+                                map.animateCamera(
+                                    CameraUpdateFactory.newLatLngBounds(bounds, 100)
+                                )
+                            }
+
+                            origin != null -> {
+                                map.animateCamera(
+                                    CameraUpdateFactory.newCameraPosition(
+                                        CameraPosition.Builder()
+                                            .target(
+                                                LatLng(
+                                                    origin.latitude,
+                                                    origin.longitude
+                                                )
+                                            )
+                                            .zoom(14.0)
+                                            .build()
+                                    )
+                                )
+                            }
+
+                            destination != null -> {
+                                map.animateCamera(
+                                    CameraUpdateFactory.newCameraPosition(
+                                        CameraPosition.Builder()
+                                            .target(
+                                                LatLng(
+                                                    destination.latitude,
+                                                    destination.longitude
+                                                )
+                                            )
+                                            .zoom(14.0)
+                                            .build()
+                                    )
+                                )
+                            }
+
+                            else -> {
+                                // Default location (Bangalore)
+                                map.animateCamera(
+                                    CameraUpdateFactory.newCameraPosition(
+                                        CameraPosition.Builder()
+                                            .target(LatLng(12.9716, 77.5946))
+                                            .zoom(10.0)
+                                            .build()
+                                    )
+                                )
+                            }
+                        }
+
+                        // Marker icon
                         val markerDrawable = ResourcesCompat.getDrawable(
                             context.resources,
                             org.maplibre.android.R.drawable.maplibre_user_icon_shadow,
                             null
                         )!!
-                        style.addImage("marker-icon", markerDrawable.toBitmap())
+
+                        style.addImage(
+                            "marker-icon",
+                            markerDrawable.toBitmap()
+                        )
 
                         // Origin marker
-                        style.addSource(
-                            GeoJsonSource(
-                                "origin-source",
-                                Feature.fromGeometry(
-                                    Point.fromLngLat(origin.longitude, origin.latitude)
+                        origin?.let {
+                            style.addSource(
+                                GeoJsonSource(
+                                    "origin-source",
+                                    Feature.fromGeometry(
+                                        Point.fromLngLat(
+                                            it.longitude,
+                                            it.latitude
+                                        )
+                                    )
                                 )
                             )
-                        )
-                        style.addLayer(
-                            SymbolLayer("origin-layer", "origin-source").withProperties(
-                                PropertyFactory.iconImage("marker-icon"),
-                                PropertyFactory.iconAllowOverlap(true)
+
+                            style.addLayer(
+                                SymbolLayer(
+                                    "origin-layer",
+                                    "origin-source"
+                                ).withProperties(
+                                    PropertyFactory.iconImage("marker-icon"),
+                                    PropertyFactory.iconAllowOverlap(true)
+                                )
                             )
-                        )
+                        }
 
                         // Destination marker
-                        style.addSource(
-                            GeoJsonSource(
-                                "destination-source",
-                                Feature.fromGeometry(
-                                    Point.fromLngLat(destination.longitude, destination.latitude)
+                        destination?.let {
+                            style.addSource(
+                                GeoJsonSource(
+                                    "destination-source",
+                                    Feature.fromGeometry(
+                                        Point.fromLngLat(
+                                            it.longitude,
+                                            it.latitude
+                                        )
+                                    )
                                 )
                             )
-                        )
-                        style.addLayer(
-                            SymbolLayer("destination-layer", "destination-source").withProperties(
-                                PropertyFactory.iconImage("marker-icon"),
-                                PropertyFactory.iconAllowOverlap(true)
-                            )
-                        )
 
-                        // Empty route source — will be filled after API call
+                            style.addLayer(
+                                SymbolLayer(
+                                    "destination-layer",
+                                    "destination-source"
+                                ).withProperties(
+                                    PropertyFactory.iconImage("marker-icon"),
+                                    PropertyFactory.iconAllowOverlap(true)
+                                )
+                            )
+                        }
+
+                        // Route layer
                         style.addSource(GeoJsonSource("route-source"))
+
                         style.addLayer(
-                            LineLayer("route-layer", "route-source").withProperties(
-                                PropertyFactory.lineColor("#3b82f6"),  // blue
+                            LineLayer(
+                                "route-layer",
+                                "route-source"
+                            ).withProperties(
+                                PropertyFactory.lineColor("#3b82f6"),
                                 PropertyFactory.lineWidth(5f),
                                 PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
                                 PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND)
                             )
                         )
 
-                        // Fetch route from OSRM
-                        scope.launch(Dispatchers.IO) {
-                            val points = fetchRoute(origin, destination)
-                            if (points != null) {
-                                withContext(Dispatchers.Main) {
-                                    val routeSource = style.getSourceAs<GeoJsonSource>("route-source")
-                                    routeSource?.setGeoJson(
-                                        Feature.fromGeometry(LineString.fromLngLats(points))
-                                    )
+                        // Fetch route only if both locations exist
+                        if (origin != null && destination != null) {
+                            scope.launch(Dispatchers.IO) {
+                                val points = fetchRoute(origin, destination)
+
+                                if (points != null) {
+                                    withContext(Dispatchers.Main) {
+                                        style.getSourceAs<GeoJsonSource>("route-source")
+                                            ?.setGeoJson(
+                                                Feature.fromGeometry(
+                                                    LineString.fromLngLats(points)
+                                                )
+                                            )
+                                    }
                                 }
                             }
                         }
@@ -119,9 +198,7 @@ fun MapLibreMap(
                 }
             }
         },
-        update = { mapView ->
-            // No update needed — origin/destination are fixed
-        }
+        update = {}
     )
 }
 

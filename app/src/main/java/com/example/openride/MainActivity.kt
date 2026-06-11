@@ -58,22 +58,14 @@ class MainActivity : ComponentActivity() {
                         OpenRideTopBar()
                     }
                 ) { innerPadding ->
-                    Column(
+                    HomeScreen(
+                        sharedText = sharedText,
+                        originLocation=location,
                         modifier = Modifier
                             .padding(innerPadding)
-                            .verticalScroll(rememberScrollState())
-                    ) {
-                        HomeScreen(
-                            sharedText = sharedText,
-                            originLocation=location,
-                            modifier = Modifier
-                                .padding(16.dp)
-                        )
-                    }
-
+                    )
                 }
             }
-
         }
     }
 
