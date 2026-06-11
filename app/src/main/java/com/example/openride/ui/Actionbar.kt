@@ -22,7 +22,7 @@ import com.example.openride.ui.theme.Flurocent
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OpenRideTopBar() {
-    TopAppBar( 
+    TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = BlueBrand,
             titleContentColor = Flurocent

@@ -1,10 +1,14 @@
 package com.example.openride
 
+import android.Manifest
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -20,9 +24,22 @@ import com.example.openride.ui.HomeScreen
 import com.example.openride.ui.OpenRideTopBar
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var locationHelper: LocationHelper
+    // Register the permission launcher
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) fetchLocation()
+            else Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show()
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        locationHelper = LocationHelper(this)
+        // Request permission then get location
+        requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
 
         val sharedText =
             intent?.getStringExtra(Intent.EXTRA_TEXT) ?: ""
@@ -51,6 +68,18 @@ class MainActivity : ComponentActivity() {
             }
 
         }
+    }
+
+    private fun fetchLocation() {
+        locationHelper.getCurrentLocation(
+            onSuccess = { lat, lng ->
+                Log.d("Location", "Lat: $lat, Lng: $lng")
+                Toast.makeText(this, "Lat: $lat\nLng: $lng", Toast.LENGTH_LONG).show()
+            },
+            onFailure = { e ->
+                Log.e("Location", "Error: ${e.message}")
+            }
+        )
     }
 }
 

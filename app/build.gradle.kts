@@ -28,6 +28,7 @@ android {
             }
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -54,4 +55,11 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    // location service
+    implementation(libs.play.services.location)
+
+    // Map
+    implementation(libs.android.sdk)
+    implementation(libs.android.plugin.annotation.v9)
 }
